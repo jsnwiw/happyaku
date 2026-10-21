@@ -69,6 +69,7 @@ body {
   flex-direction: column;
   gap: 14px;
   position: relative;
+  overflow: hidden;
 }
 
 /* 상단 헤더 및 브랜드 */
@@ -123,6 +124,7 @@ body {
   gap: 8px;
   width: 100%;
   max-width: 750px;
+  flex-wrap: wrap;
 }
 
 .search-glass-pill {
@@ -274,7 +276,8 @@ body {
   flex: 1 1 auto;
   height: calc(100vh - 245px);
   height: calc(100dvh - 245px);
-  min-height: 400px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* 좌측 패널 래퍼 (사이드바와 접기 버튼을 감싸는 컨테이너) */
@@ -283,6 +286,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   flex-shrink: 0;
   z-index: 100;
   
@@ -329,7 +333,9 @@ body {
   gap: 10px;
   overflow-y: auto;
   overflow-x: hidden;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
   transform: translate3d(0, 0, 0);
   opacity: 1;
   transform-origin: left center;
@@ -614,6 +620,18 @@ body {
 .category-item-sidebar::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
+}
+
+.infra-sidebar::-webkit-scrollbar-track,
+.category-item-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Firefox 스크롤바 스타일 */
+.infra-sidebar,
+.category-item-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 .sidebar-title {
@@ -1017,14 +1035,44 @@ body {
 
 /* 1. 태블릿 브레이크포인트 (769px ~ 1100px) */
 @media (min-width: 769px) and (max-width: 1100px) {
-  .sidebar-wrapper {
-    width: 320px;
+  .glass-phone-shell {
+    padding: 14px 16px;
+    gap: 10px;
+    border-radius: 28px;
   }
+
+  .brand-text h1 {
+    font-size: 17px;
+  }
+
+  .brand-text p {
+    font-size: 11px;
+  }
+
+  .sidebar-wrapper {
+    width: clamp(280px, 30vw, 340px);
+  }
+
   .category-item-sidebar {
     width: 100%;
   }
+
   .map-quick-toggles {
     max-width: calc(100% - 330px);
+  }
+
+  .content-layout {
+    height: calc(100vh - 230px);
+    height: calc(100dvh - 230px);
+  }
+
+  .glass-btn {
+    padding: 9px 14px;
+    font-size: 12.5px;
+  }
+
+  .search-dock {
+    max-width: 600px;
   }
 }
 
@@ -1044,11 +1092,13 @@ body {
     border: none;
     box-shadow: none;
     gap: 8px;
+    overflow: hidden;
   }
 
   .glass-header {
     gap: 6px;
     padding-bottom: 6px;
+    flex-shrink: 0;
   }
 
   .brand-logo {
@@ -1074,6 +1124,7 @@ body {
   .search-dock {
     max-width: 100%;
     gap: 6px;
+    flex-wrap: wrap;
   }
 
   .glass-input {
@@ -1097,11 +1148,13 @@ body {
   .sync-status-bar {
     padding: 5px 10px;
     font-size: 10px;
+    flex-shrink: 0;
   }
 
   /* 모바일 뷰 탭 바 표시 */
   .mobile-view-tabs {
     display: flex;
+    flex-shrink: 0;
   }
 
   /* 패널 토글 플로팅 버튼은 모바일 탭으로 대체하므로 숨김 */
@@ -1116,6 +1169,7 @@ body {
     min-height: 0;
     position: relative;
     gap: 0;
+    overflow: hidden;
   }
 
   /* 모바일: [지도 뷰] 활성화 시 */
@@ -1131,20 +1185,32 @@ body {
     flex: 1 !important;
   }
 
-  /* 모바일: [패널 뷰] 활성화 시 */
+  /* 모바일: [패널 뷰] 활성화 시 - 사이드바가 스크롤 가능하게 */
   body.mobile-mode-panel .map-wrapper {
     display: none !important;
   }
 
-  body.mobile-mode-panel .sidebar-wrapper,
+  body.mobile-mode-panel .sidebar-wrapper {
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 !important;
+    min-height: 0;
+    overflow: visible;
+  }
+
   body.mobile-mode-panel .category-item-sidebar {
     display: flex !important;
     width: 100% !important;
     height: 100% !important;
     flex: 1 !important;
+    min-height: 0;
     max-height: none !important;
     border-radius: 18px;
     padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* 모바일 지도 상단 퀵 버튼 */
@@ -1177,6 +1243,87 @@ body {
     max-width: 200px !important;
     padding: 6px 8px !important;
     font-size: 10px !important;
+  }
+
+  /* 모달 모바일 최적화 */
+  .alert-modal-window {
+    max-width: 92%;
+    padding: 20px 18px 18px;
+    border-radius: 24px;
+  }
+
+  .alert-title {
+    font-size: 15px;
+  }
+
+  .alert-message {
+    font-size: 12px;
+  }
+}
+
+/* 2-1. 소형 스마트폰 (최대 480px) */
+@media (max-width: 480px) {
+  .glass-phone-shell {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .glass-header {
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+
+  .sf-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .brand-text h1 {
+    font-size: 13.5px;
+  }
+
+  .search-dock {
+    gap: 4px;
+  }
+
+  .glass-input {
+    padding: 7px 10px 7px 30px;
+    font-size: 11.5px;
+    border-radius: 12px;
+  }
+
+  .search-glass-pill svg {
+    left: 8px;
+    width: 13px;
+    height: 13px;
+  }
+
+  .glass-btn {
+    padding: 7px 10px;
+    font-size: 11px;
+    border-radius: 12px;
+  }
+
+  .sync-status-bar {
+    padding: 4px 8px;
+    font-size: 9.5px;
+    border-radius: 12px;
+  }
+
+  .mobile-tab-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .layer-toggle-btn {
+    padding: 3px 6px;
+    font-size: 9.5px;
+  }
+
+  .content-layout {
+    height: calc(100dvh - 200px);
   }
 }
 
@@ -1724,16 +1871,64 @@ body {
 
 /* 💻 대형 모니터 및 4K 울트라와이드 (1600px 이상) */
 @media (min-width: 1600px) {
-  .category-item-sidebar {
-    width: clamp(340px, 22vw, 420px);
+  .glass-phone-shell {
+    padding: 20px 26px;
   }
+
+  .sidebar-wrapper {
+    width: clamp(360px, 22vw, 440px);
+  }
+
+  .category-item-sidebar {
+    width: 100%;
+  }
+
+  .brand-text h1 {
+    font-size: 21px;
+  }
+
+  .brand-text p {
+    font-size: 12.5px;
+  }
+
   .gap-main-val {
     font-size: 14.5px;
   }
+
   .gap-label {
     font-size: 11px;
   }
-  
+
+  .glass-input {
+    font-size: 14.5px;
+    padding: 12px 18px 12px 44px;
+  }
+
+  .glass-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .content-layout {
+    height: calc(100vh - 260px);
+    height: calc(100dvh - 260px);
+  }
+}
+
+/* 🖥️ 초대형 모니터 (2000px 이상) */
+@media (min-width: 2000px) {
+  .glass-phone-shell {
+    max-width: 2200px;
+    margin: 0 auto;
+  }
+
+  .sidebar-wrapper {
+    width: clamp(400px, 20vw, 520px);
+  }
+
+  .brand-text h1 {
+    font-size: 24px;
+  }
 }
 
 /* ==========================================================================
@@ -2353,4 +2548,214 @@ body {
   .quake-alert-banner { padding: 10px; gap: 8px; }
   .qa-icon { font-size: 22px; }
   .qa-title { font-size: 13.5px; }
+}
+
+
+/* ==========================================================================
+   📱 모바일 가로 모드 (Landscape) 최적화
+   ========================================================================== */
+@media (max-width: 768px) and (orientation: landscape) {
+  .glass-phone-shell {
+    padding: 4px 8px;
+    gap: 4px;
+  }
+
+  .glass-header {
+    padding-bottom: 4px;
+    gap: 4px;
+  }
+
+  .sf-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  .brand-text h1 {
+    font-size: 13px;
+  }
+
+  .sync-status-bar {
+    padding: 3px 8px;
+    font-size: 9px;
+  }
+
+  .mobile-tab-btn {
+    padding: 5px 8px;
+    font-size: 10.5px;
+  }
+
+  .content-layout {
+    height: calc(100dvh - 130px);
+  }
+
+  body.mobile-mode-panel .category-item-sidebar {
+    padding: 8px;
+  }
+}
+
+/* ==========================================================================
+   📏 낮은 높이 화면 (예: 가로 태블릿, 짧은 노트북 등) 자동 축소
+   ========================================================================== */
+@media (max-height: 700px) and (min-width: 769px) {
+  .glass-phone-shell {
+    padding: 10px 16px;
+    gap: 8px;
+    border-radius: 24px;
+  }
+
+  .glass-header {
+    padding-bottom: 8px;
+  }
+
+  .sf-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .brand-text h1 {
+    font-size: 16px;
+  }
+
+  .brand-text p {
+    font-size: 10.5px;
+  }
+
+  .sync-status-bar {
+    padding: 5px 12px;
+    font-size: 10.5px;
+  }
+
+  .content-layout {
+    height: calc(100vh - 195px);
+    height: calc(100dvh - 195px);
+  }
+
+  .glass-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+}
+
+@media (max-height: 500px) and (min-width: 769px) {
+  .brand-text p {
+    display: none;
+  }
+
+  .sync-status-bar {
+    display: none;
+  }
+
+  .content-layout {
+    height: calc(100vh - 120px);
+    height: calc(100dvh - 120px);
+  }
+
+  .glass-phone-shell {
+    padding: 6px 12px;
+    gap: 6px;
+  }
+}
+
+/* ==========================================================================
+   🖥️ 중간 데스크톱 (1101px ~ 1400px) 최적화
+   ========================================================================== */
+@media (min-width: 1101px) and (max-width: 1400px) {
+  .sidebar-wrapper {
+    width: clamp(300px, 25vw, 370px);
+  }
+
+  .content-layout {
+    height: calc(100vh - 240px);
+    height: calc(100dvh - 240px);
+  }
+}
+
+/* ==========================================================================
+   ♿ 접근성: 모션 감소 설정 시 애니메이션 비활성화
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   🌙 다크 모드 지원 (시스템 테마 연동)
+   ========================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glass-bg: rgba(30, 30, 32, 0.62);
+    --sidebar-bg: rgba(30, 30, 32, 0.45);
+    --panel-bg: rgba(35, 35, 38, 0.55);
+    --glass-border: rgba(80, 80, 85, 0.65);
+    --text-main: #f5f5f7;
+    --text-sub: #a1a1a6;
+  }
+
+  body {
+    background: radial-gradient(circle at 10% 10%, #2c1523 0%, transparent 45%),
+                radial-gradient(circle at 90% 20%, #1a2a36 0%, transparent 45%),
+                radial-gradient(circle at 50% 90%, #1f2c18 0%, transparent 45%),
+                #1c1c1e;
+  }
+
+  .glass-input {
+    background: rgba(50, 50, 55, 0.8);
+    border-color: rgba(80, 80, 85, 0.7);
+    color: var(--text-main);
+  }
+
+  .glass-input:focus {
+    background: rgba(60, 60, 65, 0.95);
+  }
+
+  .autocomplete-list {
+    background: rgba(44, 44, 46, 0.92);
+    border-color: rgba(80, 80, 85, 0.7);
+  }
+
+  .autocomplete-item {
+    color: var(--text-main);
+  }
+
+  .autocomplete-item:hover {
+    background: rgba(0, 122, 255, 0.2);
+  }
+
+  .filter-tab {
+    background: rgba(50, 50, 55, 0.6);
+    border-color: rgba(80, 80, 85, 0.5);
+    color: #c7c7cc;
+  }
+
+  .cat-item-card {
+    background: rgba(50, 50, 55, 0.85);
+    color: var(--text-main);
+  }
+
+  .infra-13-item {
+    background: rgba(50, 50, 55, 0.92);
+    border-color: rgba(80, 80, 85, 0.3);
+  }
+
+  .infra-action-btn {
+    background: rgba(50, 50, 55, 0.92);
+    border-color: rgba(80, 80, 85, 0.3);
+  }
+
+  .panel-card-window {
+    background: linear-gradient(145deg, rgba(44, 44, 46, 0.94), rgba(38, 38, 42, 0.88));
+  }
+
+  .infra-sidebar::-webkit-scrollbar-thumb,
+  .category-item-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
 }
