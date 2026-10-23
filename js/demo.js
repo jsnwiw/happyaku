@@ -354,11 +354,10 @@
   }
 
   // ═══════════════════════════════════════════
-  // 🔊 Google TTS 음성 해설 (Web Speech API - Google 한국어 음성 우선 엔진)
-  //    Chrome 'Google 한국의' 보이스 최우선 + 15초 끊김 방지 + 모바일 호환
+  // 🔊 TTS 음성 해설 (Web Speech API)
   // ═══════════════════════════════════════════
   const tts = {
-    supported: ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window),
+    supported: ('Audio' in window) || ('speechSynthesis' in window),
     enabled: true,
     rate: 1.0,
     voice: null
@@ -368,11 +367,12 @@
   let speakId = 0;
   let speakTimer = null;
   let watchdogTimer = null;
+  let currentAudio = null;
   let keepAliveUtter = null;
   let chromePauseResumeInterval = null;
 
   function pickKoreanVoice() {
-    if (!tts.supported) return null;
+    if (!tts.supported) return;
     const voices = window.speechSynthesis.getVoices() || [];
     if (!voices.length) return null;
 
@@ -392,10 +392,10 @@
     // Google 음성(Google 한국의)을 압도적 최우선(1순위)으로 선택
     const score = (v) => {
       let sc = 0;
-      if (/google/i.test(v.name)) sc += 1000; // 구글 한국어 TTS 음성 최우선
-      if (/natural|online/i.test(v.name)) sc += 100;
-      if (/sunhi|yuna|heami|seoyeon|유나|선희/i.test(v.name)) sc += 20;
-      if (/^ko[-_]KR$/i.test(v.lang)) sc += 5;
+      if (/natural|online/i.test(v.name)) sc += 4;
+      if (/google/i.test(v.name)) sc += 3;
+      if (/sunhi|yuna|heami|seoyeon|유나|선희/i.test(v.name)) sc += 2;
+      if (/^ko[-_]KR$/i.test(v.lang)) sc += 1;
       return sc;
     };
     ko.sort((a, b) => score(b) - score(a));
@@ -403,7 +403,7 @@
     return tts.voice;
   }
 
-  if (tts.supported) {
+  if ('speechSynthesis' in window) {
     pickKoreanVoice();
     if (window.speechSynthesis.addEventListener) {
       window.speechSynthesis.addEventListener('voiceschanged', pickKoreanVoice);
@@ -415,28 +415,6 @@
     });
   }
 
-  /**
-   * Chrome/Edge 에서 SpeechSynthesis가 15초 후 멈추는 Chromium 엔진 버그 방지
-   */
-  function startChromePauseResume() {
-    stopChromePauseResume();
-    const isChromium = /Chrome|Chromium|Edg/i.test(navigator.userAgent) && !/Firefox/i.test(navigator.userAgent);
-    if (!isChromium) return;
-
-    chromePauseResumeInterval = setInterval(() => {
-      if (!tts.supported || !window.speechSynthesis.speaking) return;
-      window.speechSynthesis.pause();
-      window.speechSynthesis.resume();
-    }, 10000);
-  }
-
-  function stopChromePauseResume() {
-    if (chromePauseResumeInterval) {
-      clearInterval(chromePauseResumeInterval);
-      chromePauseResumeInterval = null;
-    }
-  }
-
   function estimateMs(text) {
     return Math.max(1200, Math.round(text.length * 120 / tts.rate));
   }
@@ -445,16 +423,21 @@
     speakId++;
     clearTimeout(speakTimer);
     clearTimeout(watchdogTimer);
+    if (currentAudio) {
+      try {
+        currentAudio.pause();
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.src = '';
+      } catch (e) { /* noop */ }
+      currentAudio = null;
+    }
     keepAliveUtter = null;
-    stopChromePauseResume();
     if (tts.supported) {
       try { window.speechSynthesis.cancel(); } catch (e) { /* noop */ }
     }
   }
 
-  /**
-   * 텍스트를 구글 TTS(Web Speech API)로 낭독합니다.
-   */
   function speakNarration(text, onDone, delayMs) {
     cancelSpeech();
     const id = speakId;
@@ -470,47 +453,21 @@
 
     // 음성 다시 한 번 확인
     pickKoreanVoice();
-
-    // 혹시 일시정지 상태에 갇혀있으면 해제
-    if (window.speechSynthesis.paused) {
-      try { window.speechSynthesis.resume(); } catch (e) { /* noop */ }
-    }
-
-    startChromePauseResume();
-
-    // 문장을 . ! ? 기준으로 분할 (긴 문장은 쉼표로 추가 분할)
-    let rawChunks = (text.match(/[^.!?]+[.!?]*/g) || [text]).map(t => t.trim()).filter(Boolean);
-    const chunks = [];
-    rawChunks.forEach(chunk => {
-      if (chunk.length > 50) {
-        const parts = chunk.split(/,\s*/);
-        if (parts.length > 1) {
-          parts.forEach(p => { if (p.trim()) chunks.push(p.trim()); });
-          return;
-        }
-      }
-      chunks.push(chunk);
-    });
-
+    const chunks = (text.match(/[^.!?]+[.!?]*/g) || [text]).map(t => t.trim()).filter(Boolean);
     let i = 0;
 
-    const speakNext = () => {
+    // Web Speech API 폴백 함수 (구글 보이스 최우선)
+    const speakViaSpeechSynthesis = (chunkList, startIndex) => {
       if (id !== speakId) return;
       if (i >= chunks.length) {
-        stopChromePauseResume();
-        speakTimer = setTimeout(finish, 350);
+        speakTimer = setTimeout(finish, 400);
         return;
       }
-
       const chunk = chunks[i++];
       const u = new SpeechSynthesisUtterance(chunk);
       u.lang = 'ko-KR';
-      if (tts.voice) {
-        u.voice = tts.voice;
-      }
+      if (tts.voice) u.voice = tts.voice;
       u.rate = tts.rate;
-      u.pitch = 1.0;
-      u.volume = 1.0;
 
       let handled = false;
       const advance = () => {
@@ -519,7 +476,6 @@
         clearTimeout(watchdogTimer);
         speakNext();
       };
-
       u.onend = advance;
       u.onerror = (e) => {
         if (e && (e.error === 'canceled' || e.error === 'interrupted')) return;
@@ -529,22 +485,16 @@
 
       keepAliveUtter = u;
       clearTimeout(watchdogTimer);
-      // 크롬 백그라운드 멈춤 대비 안전 타임아웃
       watchdogTimer = setTimeout(() => {
         if (handled || id !== speakId) return;
         try { window.speechSynthesis.cancel(); } catch (e) { /* noop */ }
         advance();
-      }, estimateMs(chunk) * 2.5 + 3000);
+      }, estimateMs(chunk) * 3 + 4000);
 
-      try {
-        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-        window.speechSynthesis.speak(u);
-      } catch (err) {
-        advance();
-      }
+      window.speechSynthesis.speak(u);
     };
 
-    speakTimer = setTimeout(speakNext, 100 + lead);
+    speakTimer = setTimeout(speakNext, 120 + lead);
   }
 
   function showCaption(text) {
@@ -864,16 +814,6 @@
    */
   function startDemo() {
     if (isMinimized) toggleMinimizeWidget();
-
-    // 🔑 브라우저 Web Speech API 활성화 및 pause 해제
-    if (tts.supported && tts.enabled) {
-      try {
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-      } catch (e) { /* noop */ }
-    }
-
     isRunning = true;
     isPaused = false;
     currentStepIndex = 0;
