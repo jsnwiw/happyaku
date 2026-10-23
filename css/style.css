@@ -2569,3 +2569,118 @@ body {
     background: rgba(255, 255, 255, 0.2);
   }
 }
+
+
+/* ==========================================================================
+   ✨ Google Gemini AI 인프라 심층 진단 & 도슨트 모달 스타일
+   ========================================================================== */
+.gemini-modal-window {
+  position: relative;
+  width: min(520px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1.5px solid rgba(142, 68, 173, 0.35);
+  border-radius: 22px;
+  padding: 22px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: tutSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.gemini-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gemini-sparkle-icon {
+  font-size: 22px;
+  line-height: 1;
+  background: linear-gradient(135deg, #1a73e8, #8e44ad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: geminiPulse 2s ease-in-out infinite;
+}
+
+@keyframes geminiPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+.gemini-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  background: linear-gradient(135deg, #1a73e8, #8e44ad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.gemini-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gemini-score-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: rgba(142, 68, 173, 0.1);
+  color: #8e44ad;
+}
+
+.gemini-key-link {
+  font-size: 11px;
+  font-weight: 700;
+  color: #007aff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  text-decoration: underline;
+}
+
+.gemini-analysis-box {
+  background: rgba(245, 245, 247, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1d1d1f;
+  word-break: keep-all;
+  white-space: pre-wrap;
+}
+
+.gemini-solutions-box {
+  background: linear-gradient(135deg, rgba(88, 86, 214, 0.08), rgba(0, 122, 255, 0.06));
+  border: 1px solid rgba(88, 86, 214, 0.2);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.gemini-modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-gemini-speak {
+  flex: 1;
+  background: linear-gradient(135deg, #1a73e8, #8e44ad) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(142, 68, 173, 0.35);
+  justify-content: center;
+}

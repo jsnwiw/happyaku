@@ -551,6 +551,9 @@ function buildRegionLiveInspectionHTML(region) {
       <div style="display:flex; flex-direction:column; gap:4px; max-height:200px; overflow-y:auto; padding-right:2px;">
         ${infraItemsHTML}
       </div>
+      <button class="glass-btn" style="width:100%; margin-top:8px; justify-content:center; background:linear-gradient(135deg, #1a73e8, #8e44ad); color:#fff; font-size:11.5px; font-weight:800; border:none; box-shadow:0 3px 10px rgba(142,68,173,0.3); cursor:pointer;" onclick="analyzeRegionWithGemini(currentRegion)">
+        ✨ Gemini AI 심층 진단 & 도슨트
+      </button>
     </div>
   `;
 }

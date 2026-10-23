@@ -154,12 +154,12 @@
   }
 
   // ═══════════════════════════════════════════
-  // 시연 시나리오 단계 정의
+  // ✨ Google Gemini AI 아나운서 시연 시나리오 단계 정의
   // ═══════════════════════════════════════════
   const demoSteps = [
     {
-      title: "1. 전국 베이스맵 & 진단 패널",
-      narration: "지금부터 대한민국 인프라 소외지역 분석 지도의 자동 시연을 시작하겠습니다. 이 지도는 위성 지도 위에 전국 열여덟 개 인프라 분야의 소외지역을 한눈에 보여 줍니다. 좌측 하단의 인프라 격차 진단 패널에는 대표 지표가 표시됩니다. 응급실 도달시간은 54분으로 수도권의 8분과 크게 차이 나고, 버스 평균 배차는 110분, 도시가스 보급률은 14.2퍼센트입니다. 먼저 사용방법 안내부터 살펴보겠습니다.",
+      title: "1. 전국 베이스맵 & Gemini 진단 패널",
+      narration: "안녕하십니까. 구글 제미나이 AI가 진행하는 대한민국 인프라 소외지역 실시간 정밀 분석 시연에 오신 것을 환영합니다. 본 플랫폼은 전국 열여덟 개 핵심 인프라 데이터를 실시간으로 통합 분석하여 지역 간 격차를 지도 위에 시각화합니다. 현재 수도권과 지방 간 응급실 도달시간은 무려 일곱 배 이상 벌어져 있습니다. 먼저 주요 사용 안내부터 살펴보겠습니다.",
       action: (next) => {
         closeAllPopups();
         closeMapPopup();
@@ -170,7 +170,7 @@
     {
       title: "2. 사용방법 안내 팝업",
       segments: buildTutorialSegments,
-      narration: "사용방법 안내 팝업입니다.",
+      narration: "제미나이 튜토리얼 가이드입니다. 열 가지 핵심 조작법을 통해 초고화질 위성 지도 조작과 레이어 분석을 확인하실 수 있습니다.",
       action: (next) => {
         if (typeof openTutorial === 'function') openTutorial();
         setTimeout(next, 600);
@@ -178,10 +178,10 @@
       after: () => { if (typeof closeTutorial === 'function') closeTutorial(); }
     },
     {
-      title: "3. 행정구역 검색 & 26km 버퍼 (속초시)",
+      title: "3. 행정구역 스마트 검색 (강원 속초시)",
       segments: [
         {
-          text: "첫 번째 기능은 행정구역 검색입니다. 검색창에 속초시를 입력하면 자동완성 목록이 나타납니다.",
+          text: "첫 번째 핵심 기능인 행정구역 스마트 검색입니다. 검색창에 속초시를 입력하면 지능형 자동완성 목록이 즉시 표출됩니다.",
           before: () => {
             const input = document.getElementById('searchInput');
             if (input) {
@@ -192,45 +192,45 @@
           }
         },
         {
-          text: "검색을 실행하면 지도가 해당 지역으로 이동하고, 반경 26킬로미터 집중 분석 구역이 파란 원으로 표시됩니다. 핀을 누르면 인프라 분석 정보가 팝업으로 나옵니다.",
+          text: "검색을 실행하면 해당 지역으로 카메라가 즉각 이동하며, 반경 이십육 킬로미터 집중 분석 구역이 푸른 버퍼 원으로 투사됩니다. 핀을 클릭하면 종합 인프라 진단 리포트가 열립니다.",
           before: () => { if (typeof executeSearchButton === 'function') executeSearchButton(); }
         }
       ],
       action: (next) => next()
     },
     {
-      title: "4. 초고위험 소외지역 분석 (경북 의성군)",
+      title: "4. 초고위험 소외지역 심층 분석 (경북 의성군)",
       segments: [
         {
-          text: "다음은 경상북도 의성군입니다. 의성군은 지방소멸위험도가 0.12로 전국 1위인, 최고 위험군 지역입니다.",
+          text: "다음은 지방소멸위험지수 전국 최고 위험군인 경상북도 의성군입니다.",
           before: inspectUiseong
         },
         {
-          text: "지역을 선택하면 좌측 패널에 실시간 진단 카드가 열리고, 지도에는 진단 구역 원과 상세 팝업이 표시됩니다."
+          text: "지역을 선택하면 좌측 패널에 제미나이 실시간 진단 카드가 활성화되고, 현장 인프라 결손 수치가 지도에 정밀 매핑됩니다."
         },
         {
-          text: "진단 항목을 보면 야간 운영 약국은 0곳이고, 초중고 폐교는 누적 35개교에 이르며, 시중은행 지점은 폐쇄되고 있습니다. 한편 이웃사촌 시범마을 사업으로 청년 유입을 시도하고 있습니다."
+          text: "야간 운영 약국 영 곳, 초중고 누적 폐교 서른다섯 곳, 시중은행 지점 철수 등 중첩된 인프라 위기가 확인됩니다. 제미나이 AI 모델은 이웃사촌 시범마을과 청년 거점 인프라 구축을 해결책으로 제시합니다."
         }
       ],
       action: (next) => next()
     },
     {
-      title: "5. 전문 인프라 분석 레이어 투사",
+      title: "5. 전문 인프라 다중 레이어 투사",
       segments: [
         {
-          text: "이번에는 전문 분석 레이어를 겹쳐 보겠습니다. 먼저 분만공백 레이어를 켭니다. 분만이 가능한 병원이 없는 지역을 보여 줍니다.",
+          text: "전문 인프라 레이어 다중 투사 기능입니다. 먼저 분만실이 전무한 분만공백 레이어를 활성화합니다.",
           before: () => setOverlay('maternal', true)
         },
         {
-          text: "이어서 교통단절 레이어를 켭니다. 대중교통으로 접근하기 어려운 지역이 겹쳐 표시됩니다.",
+          text: "이어서 대중교통 접근이 단절된 교통단절 레이어를 중첩합니다.",
           before: () => setOverlay('transit', true)
         },
         {
-          text: "에너지소외 레이어도 켭니다. 도시가스처럼 난방 에너지 보급이 부족한 지역입니다.",
+          text: "도시가스와 상수도가 미보급된 에너지소외 레이어를 켭니다.",
           before: () => setOverlay('energy', true)
         },
         {
-          text: "이렇게 여러 레이어를 겹쳐 보면, 의료와 교통, 에너지 문제가 한 지역에 함께 나타나는 복합 소외 지역을 찾을 수 있습니다. 응급사각, 소멸위험, 금융소외 버튼으로도 레이어를 더할 수 있습니다."
+          text: "이처럼 레이어를 다층 중첩하면, 의료와 교통, 에너지가 동시에 고립된 복합 소외 사각지대를 한눈에 식별할 수 있습니다."
         }
       ],
       action: (next) => {
@@ -243,15 +243,15 @@
       title: "6. 13대 인프라 카테고리 필터링",
       segments: [
         {
-          text: "열세 개 인프라 카테고리 필터입니다. 먼저 응급의료를 켜 보겠습니다. 해당 분야의 소외지역이 이모지 마커로 지도에 표시됩니다.",
+          text: "열세 개 인프라 카테고리 필터입니다. 응급의료 버튼을 누르면 해당 분야의 취약 지역만 이모지 핀으로 지도에 선별 표출됩니다.",
           before: () => setInfra('🚨 응급의료', true)
         },
         {
-          text: "이번에는 응급의료를 끄고 교통과 철도를 선택합니다. 이렇게 분야를 바꿔 가며 비교할 수 있습니다.",
+          text: "필터를 교통과 철도로 전환하여 각 인프라별 결손 분포를 상호 비교 진단합니다.",
           before: () => { setInfra('🚨 응급의료', false); setInfra('🚆 교통/철도', true); }
         },
         {
-          text: "버튼을 다시 눌러 필터를 모두 해제하면, 숨겨졌던 핀이 원래대로 다시 표시됩니다.",
+          text: "필터를 해제하면 전체 인프라 핀이 자연스럽게 복원됩니다.",
           before: () => setInfra('🚆 교통/철도', false)
         }
       ],
@@ -261,19 +261,19 @@
       title: "7. 지도 핀 숨김 / 표시 토글",
       segments: [
         {
-          text: "이번에는 핀 숨김 기능입니다. 핀이 많아 지도가 복잡할 때, 핀 숨기기 버튼으로 깔끔하게 정리할 수 있습니다.",
+          text: "시각적 피로도를 낮추는 핀 숨김 토글입니다. 지형과 도로망을 넓게 분석할 때 유용합니다.",
           before: () => setPins(false)
         },
         {
-          text: "다시 핀 표시하기를 누르면 핀이 원래대로 복원됩니다.",
+          text: "다시 핀 표시를 선택하면 모든 인프라 마커가 원위치로 복원됩니다.",
           before: () => setPins(true)
         }
       ],
       action: (next) => next()
     },
     {
-      title: "8. 마커 클러스터링 (핀 겹침 방지)",
-      narration: "마커 클러스터링입니다. 지도를 멀리서 보면 가까운 핀들이 숫자 배지로 묶여 겹치지 않습니다. 파란색은 1개에서 4개, 주황색은 5개에서 9개, 빨간색은 10개 이상이고, 클러스터를 클릭하거나 확대하면 개별 핀으로 펼쳐집니다.",
+      title: "8. 지능형 마커 클러스터링",
+      narration: "지능형 마커 클러스터링입니다. 광역 뷰에서는 밀집된 핀들이 파랑, 주황, 빨강 배지로 자동 그룹화되어 핀 겹침 현상을 완벽히 방지하며, 확대 시 개별 핀으로 부드럽게 펼쳐집니다.",
       action: (next) => {
         closeMapPopup();
         flyToView([36.3, 127.8], 7.0, 1.2);
@@ -281,14 +281,14 @@
       }
     },
     {
-      title: "9. 좌측 패널 접기 / 펼치기",
+      title: "9. 인터랙티브 패널 접기 / 펼치기",
       segments: [
         {
-          text: "좌측 패널은 화살표 버튼으로 접을 수 있습니다. 패널을 접으면 지도가 더 넓게 보입니다.",
+          text: "좌측 패널은 플로팅 핸들을 통해 손쉽게 접고 펼 수 있습니다. 패널을 접으면 와이드 화면에서 지도를 감상할 수 있습니다.",
           before: () => setPanelCollapsed(true)
         },
         {
-          text: "다시 누르면 패널이 펼쳐져서, 진단 카드와 소외지역 항목 목록을 볼 수 있습니다.",
+          text: "패널을 다시 펼치면 열세 대 인프라 진단 카드와 항목 목록을 정밀 대조할 수 있습니다.",
           before: () => setPanelCollapsed(false)
         }
       ],
@@ -298,7 +298,7 @@
       title: "10. 실시간 동기화 상태 바 & 타이머",
       segments: [
         {
-          text: "상단 상태 바입니다. 라이브 배지는 인프라 데이터가 실시간으로 반영되고 있다는 표시이고, 오른쪽 타이머는 다음 동기화까지 남은 시간으로, 10분 주기로 갱신됩니다.",
+          text: "상단의 라이브 스트림 바입니다. 전국 열여덟 개 인프라 데이터가 십 분 주기로 끊김 없이 실시간 동기화되고 있음을 보여줍니다.",
           before: () => hl('.sync-status-bar')
         }
       ],
@@ -307,7 +307,7 @@
     },
     {
       title: "11. 시연 완료 및 초기화",
-      narration: "이상으로 자동 시연을 마칩니다. 화면은 처음 상태로 복원됩니다. 언제든 상단의 자동 시연 버튼으로 다시 보실 수 있습니다. 감사합니다.",
+      narration: "이상으로 구글 제미나이 AI와 함께한 인프라 소외지역 시연을 마칩니다. 화면은 초기 상태로 안전하게 복원됩니다. 상단의 제미나이 AI 도슨트 버튼으로 개별 지역의 심층 브리핑도 직접 체험해 보세요. 경청해 주셔서 감사합니다.",
       action: (next) => {
         cleanupDemoState();
         setTimeout(next, 1500);
@@ -357,7 +357,7 @@
   // 🔊 TTS 음성 해설 (Web Speech API)
   // ═══════════════════════════════════════════
   const tts = {
-    supported: ('Audio' in window) || ('speechSynthesis' in window),
+    supported: ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window),
     enabled: true,
     rate: 1.0,
     voice: null
@@ -367,9 +367,57 @@
   let speakId = 0;
   let speakTimer = null;
   let watchdogTimer = null;
-  let currentAudio = null;
   let keepAliveUtter = null;
   let chromePauseResumeInterval = null;
+
+
+  function getFriendlyVoiceName(v) {
+    let name = v.name || '한국어 음성';
+    name = name.replace(/Microsoft /i, 'MS ')
+               .replace(/ - Korean \(Korea\)/i, '')
+               .replace(/ - Korean \(Korean\)/i, '')
+               .replace(/ Online \(Natural\)/i, ' (자연어)')
+               .replace(/ \(Natural\)/i, ' (자연어)');
+    return name;
+  }
+
+  function getKoreanVoicesList() {
+    if (!tts.supported) return [];
+    const voices = window.speechSynthesis.getVoices() || [];
+    let ko = voices.filter(v => /^ko([-_]|$)/i.test(v.lang) || /korean|한국/i.test(v.name));
+    return ko.length ? ko : voices;
+  }
+
+  function playVoicePreview(sampleText) {
+    if (!tts.supported || !tts.enabled) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(sampleText || '선택하신 음성입니다.');
+      u.lang = 'ko-KR';
+      if (tts.voice) u.voice = tts.voice;
+      u.rate = tts.rate * 0.95;
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* noop */ }
+  }
+
+  function populateVoiceSelect() {
+    const sel = document.getElementById('demoVoiceSelect');
+    if (!sel || !tts.supported) return;
+
+    const ko = getKoreanVoicesList();
+    if (!ko.length) return;
+
+    sel.innerHTML = '';
+    ko.forEach((v) => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.textContent = getFriendlyVoiceName(v);
+      if (tts.voice && tts.voice.name === v.name) {
+        opt.selected = true;
+      }
+      sel.appendChild(opt);
+    });
+  }
 
   function pickKoreanVoice() {
     if (!tts.supported) return;
@@ -389,17 +437,29 @@
       return null;
     }
 
-    // Google 음성(Google 한국의)을 압도적 최우선(1순위)으로 선택
+    // 🌟 Google 공식 한국어 음성(Google 한국의) 최우선 선택! (마이크로소프트 음성 철저 배제)
     const score = (v) => {
       let sc = 0;
-      if (/natural|online/i.test(v.name)) sc += 4;
-      if (/google/i.test(v.name)) sc += 3;
-      if (/sunhi|yuna|heami|seoyeon|유나|선희/i.test(v.name)) sc += 2;
-      if (/^ko[-_]KR$/i.test(v.lang)) sc += 1;
+      const name = (v.name || '').toLowerCase();
+      
+      // 1순위: Google 한국어 음성 (Google 한국의 / Google ko-KR) 단독 최우선!
+      if (name.includes('google')) {
+        sc += 10000;
+      }
+      
+      // 마이크로소프트(Microsoft, Heami, SunHi 등) 음성은 강력 감점으로 배제
+      if (name.includes('microsoft') || name.includes('heami') || name.includes('sunhi') || name.includes('injoon')) {
+        sc -= 5000;
+      }
+
+      if (/^ko[-_]KR$/i.test(v.lang)) sc += 100;
       return sc;
     };
     ko.sort((a, b) => score(b) - score(a));
-    tts.voice = ko[0];
+    if (!tts.voice) {
+      tts.voice = ko[0];
+    }
+    populateVoiceSelect();
     return tts.voice;
   }
 
@@ -423,15 +483,6 @@
     speakId++;
     clearTimeout(speakTimer);
     clearTimeout(watchdogTimer);
-    if (currentAudio) {
-      try {
-        currentAudio.pause();
-        currentAudio.onended = null;
-        currentAudio.onerror = null;
-        currentAudio.src = '';
-      } catch (e) { /* noop */ }
-      currentAudio = null;
-    }
     keepAliveUtter = null;
     if (tts.supported) {
       try { window.speechSynthesis.cancel(); } catch (e) { /* noop */ }
@@ -457,7 +508,7 @@
     let i = 0;
 
     // Web Speech API 폴백 함수 (구글 보이스 최우선)
-    const speakViaSpeechSynthesis = (chunkList, startIndex) => {
+    const speakNext = () => {
       if (id !== speakId) return;
       if (i >= chunks.length) {
         speakTimer = setTimeout(finish, 400);
@@ -467,14 +518,17 @@
       const u = new SpeechSynthesisUtterance(chunk);
       u.lang = 'ko-KR';
       if (tts.voice) u.voice = tts.voice;
-      u.rate = tts.rate;
+      u.rate = tts.rate * 0.93; // 구글 음성에 최적화된 자연스러운 발화 속도
+      u.pitch = 1.0; // 구글 음성 표준 톤
+      u.volume = 1.0;
 
       let handled = false;
       const advance = () => {
         if (handled || id !== speakId) return;
         handled = true;
         clearTimeout(watchdogTimer);
-        speakNext();
+        // 문장 사이 숨고르기(자연스러운 쉼표 호흡 160ms)
+        speakTimer = setTimeout(speakNext, 160);
       };
       u.onend = advance;
       u.onerror = (e) => {
@@ -592,7 +646,7 @@
         vBtn.disabled = true;
         vBtn.style.opacity = '0.5';
       } else {
-        vBtn.innerText = tts.enabled ? '🔊 Google 음성' : '🔇 음성 꺼짐';
+        vBtn.innerText = tts.enabled ? '🔊 음성 켜짐' : '🔇 음성 꺼짐';
         vBtn.style.background = tts.enabled ? 'rgba(0,122,255,0.12)' : '#f2f2f7';
         vBtn.style.color = tts.enabled ? '#007aff' : '#8e8e93';
       }
@@ -676,8 +730,19 @@
         원터치 Google TTS 자동 시연
       </div>
 
+      <!-- 🗣️ 음성 선택 드롭다운 & 미리듣기 -->
+      <div style="display:flex; align-items:center; gap:5px; margin-bottom:8px; background:rgba(0,0,0,0.03); padding:4px 6px; border-radius:8px;">
+        <span style="font-size:11px; font-weight:700; color:#515156; white-space:nowrap;">🗣️ 음성:</span>
+        <select id="demoVoiceSelect" style="flex:1; min-width:0; padding:4px 5px; border:1px solid #d1d1d6; border-radius:6px; background:#fff; font-size:11px; font-weight:600; color:#1d1d1f; outline:none; cursor:pointer;" title="원하는 다른 음성을 선택하세요">
+          <option value="">음성 불러오는 중...</option>
+        </select>
+        <button id="demoTestVoiceBtn" title="선택한 음성 1초 미리듣기" style="flex-shrink:0; padding:4px 7px; border:1px solid #007aff; border-radius:6px; background:rgba(0,122,255,0.08); color:#007aff; font-size:10px; font-weight:700; cursor:pointer;">
+          듣기
+        </button>
+      </div>
+
       <div style="display:flex; gap:6px; margin-bottom:10px;">
-        <button id="demoVoiceBtn" style="flex:1.3; padding:5px 6px; border:none; border-radius:7px; background:rgba(0,122,255,0.12); color:#007aff; font-size:11px; font-weight:700; cursor:pointer; transition: all 0.15s ease;">🔊 Google 음성</button>
+        <button id="demoVoiceBtn" style="flex:1.3; padding:5px 6px; border:none; border-radius:7px; background:rgba(0,122,255,0.12); color:#007aff; font-size:11px; font-weight:700; cursor:pointer; transition: all 0.15s ease;">🔊 음성 켜짐</button>
         <button id="demoRateBtn" style="flex:1; padding:5px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#3a3a3c; font-size:11px; font-weight:600; cursor:pointer; transition: all 0.15s ease;">속도 1.0x</button>
       </div>
 
@@ -755,6 +820,29 @@
     document.getElementById('demoMinimizeBtn').addEventListener('click', toggleMinimizeWidget);
     document.getElementById('demoVoiceBtn').addEventListener('click', toggleVoice);
     document.getElementById('demoRateBtn').addEventListener('click', cycleRate);
+
+    const voiceSel = document.getElementById('demoVoiceSelect');
+    if (voiceSel) {
+      voiceSel.addEventListener('change', () => {
+        const chosen = voiceSel.value;
+        const all = window.speechSynthesis.getVoices() || [];
+        const match = all.find(v => v.name === chosen);
+        if (match) {
+          tts.voice = match;
+          playVoicePreview('음성이 변경되었습니다.');
+          restartNarrationIfNeeded();
+        }
+      });
+    }
+
+    const testBtn = document.getElementById('demoTestVoiceBtn');
+    if (testBtn) {
+      testBtn.addEventListener('click', () => {
+        playVoicePreview('인프라 분석 지도의 음성 안내입니다.');
+      });
+    }
+
+    populateVoiceSelect();
     updateVoiceUI();
   }
 
