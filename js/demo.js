@@ -1,9 +1,10 @@
 /**
  * js/demo.js
- * 대한민국 인프라 소외지역 실시간 분석 지도 - 자동 시연(Auto Demo) 모듈
+ * 대한민국 인프라 소외지역 실시간 분석 지도 - TTS 자동 시연(Auto Demo) 모듈
  * + TTS 음성 해설(Web Speech API) / 하단 자막 지원
  *   - 각 단계의 '화면 동작'과 '음성 해설'이 모두 끝나야 다음 단계로 넘어갑니다.
  *   - 음성 켜기/끄기, 속도 조절 가능 (음성 미지원 브라우저는 자막만 표시)
+ *   - Chrome 15초 음성 끊김 방지(keepAlive) 탑재
  * 
  * 시연 시나리오:
  *  1. 전국 베이스맵 & 인프라 격차 진단 패널
@@ -116,6 +117,42 @@
     if (input) input.value = '경북 의성군';
     if (typeof executeSearchButton === 'function') executeSearchButton();
   }
+
+  // ═══════════════════════════════════════════
+  // 📖 튜토리얼 자동 TTS 세그먼트 빌더
+  //    TUTORIAL_STEPS 배열을 순회하며 각 슬라이드를
+  //    음성 낭독 + 자동 페이지 넘김 세그먼트로 변환
+  // ═══════════════════════════════════════════
+  function buildTutorialSegments() {
+    if (typeof TUTORIAL_STEPS === 'undefined' || !TUTORIAL_STEPS.length) {
+      return [{ text: '사용방법 안내를 표시합니다.' }];
+    }
+
+    const segs = [];
+    const total = TUTORIAL_STEPS.length;
+
+    TUTORIAL_STEPS.forEach((step, idx) => {
+      // HTML에서 순수 텍스트 추출하여 TTS 낭독용 텍스트 생성
+      const plainTitle = stripHtml(step.title);
+      const plainDesc = stripHtml(step.desc);
+      const narText = `${idx + 1}단계. ${plainTitle}. ${plainDesc}`;
+
+      segs.push({
+        text: narText,
+        delay: idx === 0 ? 300 : 200,
+        before: () => {
+          // 튜토리얼 모달이 열려 있으면 해당 스텝으로 이동
+          if (typeof tutorialCurrentStep !== 'undefined') {
+            tutorialCurrentStep = idx;
+            if (typeof renderTutorialStep === 'function') renderTutorialStep();
+          }
+        }
+      });
+    });
+
+    return segs;
+  }
+
   // ═══════════════════════════════════════════
   // 시연 시나리오 단계 정의
   // ═══════════════════════════════════════════
@@ -317,31 +354,35 @@
   }
 
   // ═══════════════════════════════════════════
-  // 🔊 TTS 음성 해설 (Web Speech API)
+  // 🔊 Google TTS 음성 해설 (Google Translate TTS + Web Speech API Google Voice Fallback)
+  //    고음질 구글 한국어 음성 + 15초 끊김 방지 + 모바일 호환성 강화
   // ═══════════════════════════════════════════
   const tts = {
-    supported: ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window),
+    supported: ('Audio' in window) || ('speechSynthesis' in window),
     enabled: true,
     rate: 1.0,
     voice: null
   };
-  const RATE_STEPS = [0.9, 1.0, 1.15, 1.3];
+  const RATE_STEPS = [0.8, 0.9, 1.0, 1.15, 1.3, 1.5];
 
   let speakId = 0;
   let speakTimer = null;
   let watchdogTimer = null;
+  let currentAudio = null;
   let keepAliveUtter = null;
+  let chromePauseResumeInterval = null;
 
   function pickKoreanVoice() {
-    if (!tts.supported) return;
+    if (!('speechSynthesis' in window)) return;
     const voices = window.speechSynthesis.getVoices() || [];
     const ko = voices.filter(v => /^ko([-_]|$)/i.test(v.lang));
     if (!ko.length) { tts.voice = null; return; }
     const score = (v) => {
       let sc = 0;
-      if (/natural|online/i.test(v.name)) sc += 4;
-      if (/google/i.test(v.name)) sc += 3;
-      if (/sunhi|yuna|heami|seoyeon|유나|선희/i.test(v.name)) sc += 2;
+      // Google 음성 최우선 선택
+      if (/google/i.test(v.name)) sc += 100;
+      if (/natural|online/i.test(v.name)) sc += 10;
+      if (/sunhi|yuna|heami|seoyeon|유나|선희/i.test(v.name)) sc += 5;
       if (/^ko[-_]KR$/i.test(v.lang)) sc += 1;
       return sc;
     };
@@ -349,7 +390,7 @@
     tts.voice = ko[0];
   }
 
-  if (tts.supported) {
+  if ('speechSynthesis' in window) {
     pickKoreanVoice();
     if (window.speechSynthesis.addEventListener) {
       window.speechSynthesis.addEventListener('voiceschanged', pickKoreanVoice);
@@ -361,6 +402,29 @@
     });
   }
 
+  /**
+   * Chrome/Edge 에서 SpeechSynthesis가 15초 후 멈추는 버그를 방지하기 위한
+   * pause/resume 반복 핵 (Chromium Bug workaround)
+   */
+  function startChromePauseResume() {
+    stopChromePauseResume();
+    const isChromium = /Chrome|Chromium|Edg/i.test(navigator.userAgent) && !/Firefox/i.test(navigator.userAgent);
+    if (!isChromium) return;
+
+    chromePauseResumeInterval = setInterval(() => {
+      if (!('speechSynthesis' in window) || !window.speechSynthesis.speaking) return;
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }, 10000);
+  }
+
+  function stopChromePauseResume() {
+    if (chromePauseResumeInterval) {
+      clearInterval(chromePauseResumeInterval);
+      chromePauseResumeInterval = null;
+    }
+  }
+
   function estimateMs(text) {
     return Math.max(1200, Math.round(text.length * 120 / tts.rate));
   }
@@ -369,12 +433,27 @@
     speakId++;
     clearTimeout(speakTimer);
     clearTimeout(watchdogTimer);
+    if (currentAudio) {
+      try {
+        currentAudio.pause();
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
+        currentAudio.src = '';
+      } catch (e) { /* noop */ }
+      currentAudio = null;
+    }
     keepAliveUtter = null;
-    if (tts.supported) {
+    stopChromePauseResume();
+    if ('speechSynthesis' in window) {
       try { window.speechSynthesis.cancel(); } catch (e) { /* noop */ }
     }
   }
 
+  /**
+   * 텍스트를 Google TTS로 낭독합니다.
+   * 1순위: Google Translate TTS 오디오 엔진 (실제 Google Neural/Korean voice)
+   * 2순위: Web Speech API의 Google 보이스 (Google 한국의) 자동 폴백
+   */
   function speakNarration(text, onDone, delayMs) {
     cancelSpeech();
     const id = speakId;
@@ -389,47 +468,135 @@
     }
 
     pickKoreanVoice();
-    const chunks = (text.match(/[^.!?]+[.!?]*/g) || [text]).map(t => t.trim()).filter(Boolean);
+
+    // 문장을 . ! ? 기준으로 분할하되, 55자 초과 문장은 쉼표로 추가 분할 (Google TTS URL 길이 안정성)
+    let rawChunks = (text.match(/[^.!?]+[.!?]*/g) || [text]).map(t => t.trim()).filter(Boolean);
+    const chunks = [];
+    rawChunks.forEach(chunk => {
+      if (chunk.length > 55) {
+        const parts = chunk.split(/,\s*/);
+        if (parts.length > 1) {
+          parts.forEach(p => { if (p.trim()) chunks.push(p.trim()); });
+          return;
+        }
+      }
+      chunks.push(chunk);
+    });
+
     let i = 0;
 
-    const speakNext = () => {
+    // Web Speech API 폴백 함수 (구글 보이스 최우선)
+    const speakViaSpeechSynthesis = (chunkList, startIndex) => {
+      if (id !== speakId) return;
+      if (!('speechSynthesis' in window)) {
+        speakTimer = setTimeout(finish, 350);
+        return;
+      }
+      startChromePauseResume();
+      let sIdx = startIndex;
+
+      const speakNextSpeech = () => {
+        if (id !== speakId) return;
+        if (sIdx >= chunkList.length) {
+          stopChromePauseResume();
+          speakTimer = setTimeout(finish, 350);
+          return;
+        }
+        const sChunk = chunkList[sIdx++];
+        const u = new SpeechSynthesisUtterance(sChunk);
+        u.lang = 'ko-KR';
+        if (tts.voice) u.voice = tts.voice;
+        u.rate = tts.rate;
+        u.pitch = 1.0;
+        u.volume = 1.0;
+
+        let handled = false;
+        const advance = () => {
+          if (handled || id !== speakId) return;
+          handled = true;
+          clearTimeout(watchdogTimer);
+          speakNextSpeech();
+        };
+        u.onend = advance;
+        u.onerror = (e) => {
+          if (e && (e.error === 'canceled' || e.error === 'interrupted')) return;
+          clearTimeout(watchdogTimer);
+          speakTimer = setTimeout(advance, estimateMs(sChunk));
+        };
+
+        keepAliveUtter = u;
+        clearTimeout(watchdogTimer);
+        watchdogTimer = setTimeout(() => {
+          if (handled || id !== speakId) return;
+          try { window.speechSynthesis.cancel(); } catch (e) { /* noop */ }
+          advance();
+        }, estimateMs(sChunk) * 3 + 3000);
+
+        try {
+          window.speechSynthesis.speak(u);
+        } catch (e) {
+          advance();
+        }
+      };
+
+      speakNextSpeech();
+    };
+
+    // Google Translate TTS 고품질 오디오 엔진 재생
+    const speakNextGoogleAudio = () => {
       if (id !== speakId) return;
       if (i >= chunks.length) {
-        speakTimer = setTimeout(finish, 400);
+        speakTimer = setTimeout(finish, 350);
         return;
       }
       const chunk = chunks[i++];
-      const u = new SpeechSynthesisUtterance(chunk);
-      u.lang = 'ko-KR';
-      if (tts.voice) u.voice = tts.voice;
-      u.rate = tts.rate;
+      const gUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ko&q=${encodeURIComponent(chunk)}`;
+
+      const audio = new Audio();
+      currentAudio = audio;
+      audio.playbackRate = tts.rate;
 
       let handled = false;
       const advance = () => {
         if (handled || id !== speakId) return;
         handled = true;
         clearTimeout(watchdogTimer);
-        speakNext();
-      };
-      u.onend = advance;
-      u.onerror = (e) => {
-        if (e && (e.error === 'canceled' || e.error === 'interrupted')) return;
-        clearTimeout(watchdogTimer);
-        speakTimer = setTimeout(advance, estimateMs(chunk));
+        currentAudio = null;
+        speakNextGoogleAudio();
       };
 
-      keepAliveUtter = u;
+      audio.onended = advance;
+
+      audio.onerror = () => {
+        // 네트워크 차단 또는 오디오 로드 에러 시 Web Speech API (Google 보이스 우선)로 폴백
+        console.warn('[demo] Google TTS audio fallback to SpeechSynthesis for chunk:', chunk);
+        if (handled || id !== speakId) return;
+        handled = true;
+        clearTimeout(watchdogTimer);
+        currentAudio = null;
+        speakViaSpeechSynthesis(chunks, i - 1);
+      };
+
       clearTimeout(watchdogTimer);
       watchdogTimer = setTimeout(() => {
         if (handled || id !== speakId) return;
-        try { window.speechSynthesis.cancel(); } catch (e) { /* noop */ }
         advance();
-      }, estimateMs(chunk) * 3 + 4000);
+      }, estimateMs(chunk) * 2.5 + 4000);
 
-      window.speechSynthesis.speak(u);
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('[demo] Google TTS play error, fallback to SpeechSynthesis:', err);
+          if (handled || id !== speakId) return;
+          handled = true;
+          clearTimeout(watchdogTimer);
+          currentAudio = null;
+          speakViaSpeechSynthesis(chunks, i - 1);
+        });
+      }
     };
 
-    speakTimer = setTimeout(speakNext, 120 + lead);
+    speakTimer = setTimeout(speakNextGoogleAudio, 120 + lead);
   }
 
   function showCaption(text) {
@@ -527,13 +694,13 @@
         vBtn.disabled = true;
         vBtn.style.opacity = '0.5';
       } else {
-        vBtn.innerText = tts.enabled ? '🔊 음성 켜짐' : '🔇 음성 꺼짐';
+        vBtn.innerText = tts.enabled ? '🔊 Google 음성' : '🔇 음성 꺼짐';
         vBtn.style.background = tts.enabled ? 'rgba(0,122,255,0.12)' : '#f2f2f7';
         vBtn.style.color = tts.enabled ? '#007aff' : '#8e8e93';
       }
     }
     if (rBtn) {
-      rBtn.innerText = `속도 ${tts.rate.toFixed(2).replace(/0$/, '')}x`;
+      rBtn.innerText = `속도 ${tts.rate.toFixed(1)}x`;
       rBtn.disabled = !tts.supported;
       rBtn.style.opacity = tts.supported ? '1' : '0.5';
     }
@@ -548,7 +715,11 @@
     if (!tts.supported) return;
     tts.enabled = !tts.enabled;
     updateVoiceUI();
-    restartNarrationIfNeeded();
+    if (!tts.enabled) {
+      cancelSpeech();
+    } else {
+      restartNarrationIfNeeded();
+    }
   }
 
   function cycleRate() {
@@ -587,7 +758,7 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <div style="display:flex; align-items:center; gap:6px;">
           <span style="font-size:15px;">🎬</span>
-          <span style="font-weight:800; font-size:13px; color:#1d1d1f; letter-spacing:-0.2px;">자동 시연</span>
+          <span style="font-weight:800; font-size:13px; color:#1d1d1f; letter-spacing:-0.2px;">Google TTS 시연</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
           <span id="demoStepBadge" style="font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:#e5e5ea; color:#3a3a3c;">
@@ -604,31 +775,31 @@
       </div>
 
       <div id="demoTitle" style="font-size:12.5px; font-weight:700; color:#007aff; margin-bottom:10px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-        원터치 자동 시연 모드
+        원터치 Google TTS 자동 시연
       </div>
 
       <div style="display:flex; gap:6px; margin-bottom:10px;">
-        <button id="demoVoiceBtn" style="flex:1.3; padding:5px 6px; border:none; border-radius:7px; background:rgba(0,122,255,0.12); color:#007aff; font-size:11px; font-weight:700; cursor:pointer;">🔊 음성 켜짐</button>
-        <button id="demoRateBtn" style="flex:1; padding:5px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#3a3a3c; font-size:11px; font-weight:600; cursor:pointer;">속도 1x</button>
+        <button id="demoVoiceBtn" style="flex:1.3; padding:5px 6px; border:none; border-radius:7px; background:rgba(0,122,255,0.12); color:#007aff; font-size:11px; font-weight:700; cursor:pointer; transition: all 0.15s ease;">🔊 Google 음성</button>
+        <button id="demoRateBtn" style="flex:1; padding:5px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#3a3a3c; font-size:11px; font-weight:600; cursor:pointer; transition: all 0.15s ease;">속도 1.0x</button>
       </div>
 
       <div id="demoBtnGroupReady" style="display:flex; gap:6px;">
         <button id="demoStartBtn" style="flex:1; padding:8px 12px; border:none; border-radius:10px; background:linear-gradient(135deg, #007aff, #0056b3); color:#fff; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(0,122,255,0.3); transition:all 0.2s;">
-          ▶ 자동 시연 시작
+          ▶ Google TTS 자동 시연 시작
         </button>
       </div>
 
       <div id="demoBtnGroupRunning" style="display:none; gap:5px; flex-wrap:wrap;">
-        <button id="demoPrevBtn" style="flex:1; padding:6px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#1d1d1f; font-size:11px; font-weight:600; cursor:pointer;">
+        <button id="demoPrevBtn" style="flex:1; padding:6px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#1d1d1f; font-size:11px; font-weight:600; cursor:pointer; transition: all 0.15s ease;">
           ◀ 이전
         </button>
-        <button id="demoPauseBtn" style="flex:1.2; padding:6px 6px; border:none; border-radius:7px; background:#ff9500; color:#fff; font-size:11px; font-weight:700; cursor:pointer;">
+        <button id="demoPauseBtn" style="flex:1.2; padding:6px 6px; border:none; border-radius:7px; background:#ff9500; color:#fff; font-size:11px; font-weight:700; cursor:pointer; transition: all 0.15s ease;">
           ⏸ 일시정지
         </button>
-        <button id="demoNextBtn" style="flex:1; padding:6px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#1d1d1f; font-size:11px; font-weight:600; cursor:pointer;">
+        <button id="demoNextBtn" style="flex:1; padding:6px 6px; border:1px solid #d1d1d6; border-radius:7px; background:#fff; color:#1d1d1f; font-size:11px; font-weight:600; cursor:pointer; transition: all 0.15s ease;">
           다음 ▶
         </button>
-        <button id="demoStopBtn" style="width:100%; margin-top:3px; padding:5px; border:none; border-radius:7px; background:rgba(255,59,48,0.12); color:#ff3b30; font-size:11px; font-weight:700; cursor:pointer;">
+        <button id="demoStopBtn" style="width:100%; margin-top:3px; padding:5px; border:none; border-radius:7px; background:rgba(255,59,48,0.12); color:#ff3b30; font-size:11px; font-weight:700; cursor:pointer; transition: all 0.15s ease;">
           ⏹ 시연 즉시 종료
         </button>
       </div>
@@ -653,6 +824,20 @@
         }
         @media (max-width: 760px) {
           #demoCaption { max-width: calc(100vw - 32px); bottom: 210px; font-size: 13.5px; }
+          #demoControlWidget {
+            right: 12px !important;
+            bottom: 60px !important;
+            width: calc(100vw - 24px) !important;
+            max-width: 360px !important;
+            padding: 12px 14px !important;
+            border-radius: 14px !important;
+          }
+          #demoFloatingMiniPill {
+            right: 12px !important;
+            bottom: 60px !important;
+            padding: 7px 12px !important;
+            font-size: 11.5px !important;
+          }
         }
       `;
       document.head.appendChild(st);
@@ -713,7 +898,7 @@
       gap: 5px;
       transition: all 0.2s ease;
     `;
-    miniPill.innerHTML = `🎬 자동 시연 ${isRunning ? `(${currentStepIndex + 1}/${demoSteps.length})` : ''}`;
+    miniPill.innerHTML = `🎬 Google TTS ${isRunning ? `(${currentStepIndex + 1}/${demoSteps.length})` : ''}`;
     miniPill.addEventListener('click', () => {
       toggleMinimizeWidget();
     });
@@ -725,8 +910,28 @@
     if (miniPill) miniPill.remove();
   }
 
+  /**
+   * 🎬 Google TTS 자동 시연 시작
+   * 모바일/브라우저 오디오 자동 재생 정책 해제를 위한 워밍업
+   */
   function startDemo() {
     if (isMinimized) toggleMinimizeWidget();
+
+    // 🔑 브라우저 오디오 및 Web Speech API 활성화 워밍업
+    if (tts.supported && tts.enabled) {
+      try {
+        const warmAudio = new Audio();
+        warmAudio.play().catch(() => {});
+      } catch (e) { /* noop */ }
+      try {
+        window.speechSynthesis.cancel();
+        const warmUp = new SpeechSynthesisUtterance('');
+        warmUp.lang = 'ko-KR';
+        warmUp.volume = 0;
+        window.speechSynthesis.speak(warmUp);
+      } catch (e) { /* noop */ }
+    }
+
     isRunning = true;
     isPaused = false;
     currentStepIndex = 0;
@@ -767,6 +972,10 @@
 
     const titleEl = document.getElementById('demoTitle');
     if (titleEl) titleEl.innerText = step.title;
+
+    // 최소화 상태의 미니 필 업데이트
+    const miniPill = document.getElementById('demoFloatingMiniPill');
+    if (miniPill) miniPill.innerHTML = `🎬 Google TTS (${currentStepIndex + 1}/${total})`;
 
     const token = ++runToken;
     actionDone = false;
@@ -814,6 +1023,7 @@
 
   function prevStep() {
     if (!isRunning) return;
+    cancelSpeech();
     isPaused = false;
     const pauseBtn = document.getElementById('demoPauseBtn');
     if (pauseBtn) {
@@ -826,6 +1036,7 @@
 
   function nextStep() {
     if (!isRunning) return;
+    cancelSpeech();
     isPaused = false;
     const pauseBtn = document.getElementById('demoPauseBtn');
     if (pauseBtn) {
@@ -850,7 +1061,7 @@
 
     const startBtn = document.getElementById('demoStartBtn');
     if (startBtn) {
-      startBtn.innerText = '↺ 자동 시연 다시 시작';
+      startBtn.innerText = '↺ Google TTS 시연 다시 시작';
     }
 
     const badge = document.getElementById('demoStepBadge');
@@ -883,7 +1094,7 @@
 
     const startBtn = document.getElementById('demoStartBtn');
     if (startBtn) {
-      startBtn.innerText = '▶ 자동 시연 시작';
+      startBtn.innerText = '▶ Google TTS 자동 시연 시작';
     }
 
     const badge = document.getElementById('demoStepBadge');
