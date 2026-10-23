@@ -28,8 +28,28 @@
  *   after      : 단계가 끝날 때(다음 단계로 넘어가기 직전) 실행 — 팝업 닫기 등
  */
 
+import { speak, textToSpeech } from "./typecastModule.js";
+
 (function () {
   'use strict';
+
+  // Typecast SDK demo – simple wrapper
+  async function typecastDemo() {
+    try {
+      // Immediate playback example
+      await speak("안녕하세요, Typecast SDK가 정상 동작합니다.");
+      // Retrieve raw audio data example
+      const audio = await textToSpeech("텍스트를 음성으로 변환합니다.", {
+        voice_id: "YOUR_VOICE_ID",
+        model: "ssfm-v30"
+      });
+      console.log("Audio data received:", audio);
+    } catch (e) {
+      console.error("Typecast demo error:", e);
+    }
+  }
+  // Run demo on script load (optional – comment out if not needed)
+  typecastDemo();
 
   // ═══════════════════════════════════════════
   // 지도/UI 제어 헬퍼 — 상태를 '설정'하는 방식이라 여러 번 호출해도 안전합니다
@@ -157,6 +177,39 @@
   // ✨ Google Gemini AI 아나운서 시연 시나리오 단계 정의
   // ═══════════════════════════════════════════
   const demoSteps = [
+  {
+    title: "Typecast SDK 시연",
+    segments: [
+      {
+        text: "안녕하세요, Typecast SDK가 정상 동작합니다.",
+        before: () => showCaption("안녕하세요, Typecast SDK가 정상 동작합니다.")
+      }
+    ],
+    action: (next) => {
+      speak("안녕하세요, Typecast SDK가 정상 동작합니다.")
+        .catch(e => console.error("Typecast speak error:", e))
+        .finally(() => {
+          hideCaption();
+          next();
+        });
+    }
+    segments: [
+      {
+        text: "",
+        before: () => showCaption("안녕하세요, Typecast SDK가 정상 동작합니다.")
+      }
+    ],
+    action: async (next) => {
+      try {
+        await speak("안녕하세요, Typecast SDK가 정상 동작합니다.");
+      } catch (e) {
+        console.error("Typecast speak error:", e);
+      }
+      hideCaption();
+      next();
+    }
+  },
+
     {
       title: "1. 전국 베이스맵 & Gemini 진단 패널",
       narration: "안녕하십니까. 구글 제미나이 AI가 진행하는 대한민국 인프라 소외지역 실시간 정밀 분석 시연에 오신 것을 환영합니다. 본 플랫폼은 전국 열여덟 개 핵심 인프라 데이터를 실시간으로 통합 분석하여 지역 간 격차를 지도 위에 시각화합니다. 현재 수도권과 지방 간 응급실 도달시간은 무려 일곱 배 이상 벌어져 있습니다. 먼저 주요 사용 안내부터 살펴보겠습니다.",
