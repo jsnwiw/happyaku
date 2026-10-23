@@ -195,12 +195,6 @@ bankingLocations.forEach(loc => {
   bankingDeficitGroup.addLayer(circle);
 });
 
-// ==========================================================================
-// 🌋 [실시간 지진 감지 · 재난알림 레이어]
-//  - 레이어 그룹만 여기서 생성하고, 실제 데이터 수신/렌더링은 js/earthquake.js 가 담당
-// ==========================================================================
-const disasterEarthquakeGroup = L.layerGroup();
-
 // 레이어 맵 딕셔너리
 const overlayLayerMap = {
   emergency: emergencyDeficitGroup,
@@ -208,8 +202,7 @@ const overlayLayerMap = {
   maternal: maternalDeficitGroup,
   transit: transitDeficitGroup,
   energy: energyWaterDeficitGroup,
-  banking: bankingDeficitGroup,
-  disasterEarthquake: disasterEarthquakeGroup
+  banking: bankingDeficitGroup
 };
 
 /* ==========================================================================

@@ -335,8 +335,5 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeSearchAlert();
-    if (typeof closeDisasterModal === 'function') {
-      closeDisasterModal();
-    }
   }
 });
